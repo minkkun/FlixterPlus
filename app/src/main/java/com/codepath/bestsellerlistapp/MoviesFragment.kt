@@ -22,13 +22,13 @@ import org.json.JSONObject
 // --------------------------------//
 // CHANGE THIS TO BE YOUR API KEY  //
 // --------------------------------//
-private const val API_KEY = "yFmSB28MMiOyUasKlkSoVLqJZLTr3GBR"
+private const val API_KEY = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
 
 /*
  * The class for the only fragment in the app, which contains the progress bar,
- * recyclerView, and performs the network calls to the NY Times API.
+ * recyclerView, and performs the network calls to the Movie Database API.
  */
-class BestSellerBooksFragment : Fragment(), OnListFragmentInteractionListener {
+class MoviesFragment : Fragment(), OnListFragmentInteractionListener {
 
     /*
      * Constructing the view
@@ -37,11 +37,11 @@ class BestSellerBooksFragment : Fragment(), OnListFragmentInteractionListener {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_best_seller_books_list, container, false)
+        val view = inflater.inflate(R.layout.fragment_movies_list, container, false)
         val progressBar = view.findViewById<View>(R.id.progress) as ContentLoadingProgressBar
         val recyclerView = view.findViewById<View>(R.id.list) as RecyclerView
         val context = view.context
-        recyclerView.layoutManager = GridLayoutManager(context, 2)
+        recyclerView.layoutManager = GridLayoutManager(context, 1)
         updateAdapter(progressBar, recyclerView)
         return view
     }
@@ -60,7 +60,7 @@ class BestSellerBooksFragment : Fragment(), OnListFragmentInteractionListener {
 
         // Using the client, perform the HTTP request
         client[
-                "https://api.nytimes.com/svc/books/v3/lists/current/hardcover-fiction.json",
+                "https://api.themoviedb.org/3/movie/now_playing",
                 params,
                 object : JsonHttpResponseHandler() {
                     override fun onSuccess(
@@ -74,24 +74,19 @@ class BestSellerBooksFragment : Fragment(), OnListFragmentInteractionListener {
                         //TODO - Parse JSON into Models
 
                         val resultsJSON: JSONObject = json.jsonObject.get("results") as JSONObject
-                        val booksRawJSON : String = resultsJSON.get("books").toString()
+                        val moviesRawJSON : String = resultsJSON.toString()
 
                         val gson = Gson()
-                        val arrayBookType = object : TypeToken<List<BestSellerBook>>() {}.type
+                        val arrayMovieType = object : TypeToken<List<Movie>>() {}.type
 
-                        val models: List<BestSellerBook> = gson.fromJson(booksRawJSON, arrayBookType)
+                        val models: List<Movie> = gson.fromJson(moviesRawJSON, arrayMovieType)
                         recyclerView.adapter =
-                            BestSellerBooksRecyclerViewAdapter(models, this@BestSellerBooksFragment)
+                            MoviesRecyclerViewAdapter(models, this@MoviesFragment)
 
                         // Look for this in Logcat:
-                        Log.d("BestSellerBooksFragment", "response successful")
-                        Log.d("BestSellerBooksFragment", json.toString())
+                        Log.d("MoviesFragment", "response successful")
+                        Log.d("MoviesFragment", json.toString())
                     }
-
-                    /*
-                     * The onFailure function gets called when
-                     * HTTP response status is "4XX" (eg. 401, 403, 404)
-                     */
                     override fun onFailure(
                         statusCode: Int,
                         headers: Headers?,
@@ -103,7 +98,7 @@ class BestSellerBooksFragment : Fragment(), OnListFragmentInteractionListener {
 
                         // If the error is not null, log it!
                         t?.message?.let {
-                            Log.e("BestSellerBooksFragment", errorResponse)
+                            Log.e("MoviesFragment", errorResponse)
                         }
                     }
                 }]
@@ -111,9 +106,9 @@ class BestSellerBooksFragment : Fragment(), OnListFragmentInteractionListener {
     }
 
     /*
-     * What happens when a particular book is clicked.
+     * What happens when a particular movie is clicked.
      */
-    override fun onItemClick(item: BestSellerBook) {
+    override fun onItemClick(item: Movie) {
         Toast.makeText(context, "test: " + item.title, Toast.LENGTH_LONG).show()
     }
 
